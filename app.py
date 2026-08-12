@@ -108,7 +108,7 @@ if uploaded_file is not None:
                 return ''
 
             edited_df = st.data_editor(
-                res_df.style.applymap(color_status, subset=['STATUS_MATCH']),
+                res_df.style.map(color_status, subset=['STATUS_MATCH']),
                 use_container_width=True,
                 height=400,
             )
