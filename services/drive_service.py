@@ -1,75 +1,61 @@
 import os
-from google.oauth2.service_account import Credentials
+import json
+import streamlit as st
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
-SERVICE_ACCOUNT_FILE = 'credentials.json'
-
 def get_drive_service():
-    """Membuka koneksi ke Google Drive API."""
-    try:
-        creds = Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-        service = build('drive', 'v3', credentials=creds)
-        return service
-    except Exception as e:
-        print(f"Error saat autentikasi: {e}")
-        return None
-
-def get_folder_id_by_name(service, folder_name):
-    """
-    JURUS BARU: Mencari ID Folder secara otomatis hanya dengan bermodalkan nama foldernya.
-    """
-    try:
-        # Mencari file yang tipenya adalah 'folder' dan namanya sesuai dengan inputan
-        query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-        results = service.files().list(
-            q=query,
-            fields="files(id, name)",
-            supportsAllDrives=True,
-            includeItemsFromAllDrives=True
-        ).execute()
-        
-        folders = results.get('files', [])
-        if folders:
-            # Mengembalikan ID dari folder pertama yang namanya cocok
-            return folders[0]['id']
-            
-    except Exception as e:
-        print(f"Error mencari folder {folder_name}: {e}")
-        
-    return None
-
-def get_pdfs_by_folder(service, folder_id):
-    """Mengambil file PDF HANYA dari dalam Folder ID target."""
-    pdf_list = []
-    page_token = None
-    folder_id = str(folder_id).strip()
+    """Menghubungkan ke Google Drive (Bisa untuk Lokal maupun Internet)"""
+    SCOPES = ['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/drive.metadata.readonly']
     
     try:
-        while True:
-            query = f"'{folder_id}' in parents and mimeType='application/pdf' and trashed=false"
-            results = service.files().list(
-                q=query,
-                fields="nextPageToken, files(id, name)",
-                pageSize=1000,
-                pageToken=page_token,
-                includeItemsFromAllDrives=True,
-                supportsAllDrives=True
-            ).execute()
+        # 1. JIKA BERJALAN DI INTERNET (Membaca brankas rahasia Streamlit Secrets)
+        if "google_credentials" in st.secrets:
+            creds_dict = json.loads(st.secrets["google_credentials"])
+            creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
             
-            items = results.get('files', [])
-            for item in items:
-                pdf_list.append({
-                    'id': item['id'],
-                    'name': item['name'],
-                    'link': f"https://drive.google.com/file/d/{item['id']}/view"
-                })
-                
-            page_token = results.get('nextPageToken')
-            if not page_token:
-                break
-    except Exception as e:
-        print(f"Error saat membaca Drive: {e}")
+        # 2. JIKA BERJALAN DI LAPTOP (Membaca file credentials.json)
+        else:
+            creds = service_account.Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
+            
+        service = build('drive', 'v3', credentials=creds)
+        return service
         
+    except Exception as e:
+        print(f"Gagal menghubungkan ke Google Drive: {e}")
+        return None
+
+# (Biarkan fungsi get_folder_id_by_name dan get_pdfs_by_folder yang ada di bawahnya tetap seperti semula. Jika kamu tadi menghapus semuanya, pastikan fungsi tersebut juga ikut di-paste kembali. Untuk amannya, ini kode lengkapnya:)
+
+def get_folder_id_by_name(service, folder_name):
+    query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
+    results = service.files().list(q=query, fields="files(id, name)").execute()
+    items = results.get('files', [])
+    if not items:
+        return None
+    return items[0]['id']
+
+def get_pdfs_by_folder(service, folder_id):
+    query = f"'{folder_id}' in parents and mimeType='application/pdf' and trashed=false"
+    pdf_list = []
+    page_token = None
+    while True:
+        results = service.files().list(
+            q=query, 
+            fields="nextPageToken, files(id, name)",
+            pageToken=page_token,
+            pageSize=1000
+        ).execute()
+        
+        items = results.get('files', [])
+        for item in items:
+            pdf_list.append({
+                'id': item['id'],
+                'name': item['name'],
+                'link': f"https://drive.google.com/file/d/{item['id']}/view"
+            })
+            
+        page_token = results.get('nextPageToken')
+        if not page_token:
+            break
     return pdf_list
