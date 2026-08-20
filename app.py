@@ -173,11 +173,11 @@ try:
                     )
 
 
-                    # (Ini penutup untuk error saat memproses Excel)
-                                except Exception as e:
-                                    st.error(f"Terjadi kesalahan: {e}")
-                    
-                    # (Ini penutup untuk error keamanan / login yang ada di paling atas)
-                    except Exception as e:
-                        st.error(f"Error aslinya adalah: {e}")
-                        st.exception(e)
+# (Ini bagian dalam kode yang menjorok ke kanan)
+            except Exception as e:
+                st.error(f"Terjadi kesalahan: {e}")
+
+# (Ini baris terakhir yang BENAR-BENAR MENTOK KIRI)
+except Exception as e:
+    st.error(f"Error aslinya adalah: {e}")
+    st.exception(e)
