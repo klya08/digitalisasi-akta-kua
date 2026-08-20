@@ -14,8 +14,11 @@ st.set_page_config(page_title="Digitalisasi Arsip Akta Nikah KUA", page_icon="�
 # BAGIAN 1: LOGIKA KEAMANAN & LOGIN
 # ==========================================
 try:
-    # Menarik data rahasia dari file secrets.toml
-    credentials = dict(st.secrets["credentials"])
+    import copy # Tambahkan ini di bagian atas bersama import lainnya atau di sini
+
+    # Menarik data rahasia dari file secrets.toml dan mengkopinya secara mendalam
+    # agar tidak menabrak aturan Read-Only dari Streamlit Secrets
+    credentials = copy.deepcopy(dict(st.secrets["credentials"]))
     cookie = st.secrets["cookie"]
     preauthorized = st.secrets["preauthorized"]
 
@@ -28,24 +31,24 @@ try:
         preauthorized
     )
 
-# Menampilkan form login
-    authenticator.login()
+    # Menampilkan form login
+    name, authentication_status, username = authenticator.login('main')
 
-    if st.session_state.get("authentication_status") == False:
+    if authentication_status == False:
         st.error('❌ Username atau password salah! Silakan coba lagi.')
-    elif st.session_state.get("authentication_status") == None:
+    elif authentication_status == None:
         st.info('🔒 Silakan masukkan username dan password untuk mengakses Arsip KUA.')
         
     # Jika Login Berhasil, tampilkan aplikasi utama:
-    elif st.session_state.get("authentication_status") == True:
+    elif authentication_status == True:
         
         # ==========================================
         # BAGIAN 2: APLIKASI UTAMA (Hanya tampil jika login)
         # ==========================================
         
         # Menambahkan tombol Logout di sidebar beserta sapaan
-        authenticator.logout(location='sidebar')
-        st.sidebar.write(f'👤 Selamat datang, **{st.session_state["name"]}**!')
+        authenticator.logout('Logout', 'sidebar')
+        st.sidebar.write(f'👤 Selamat datang, **{name}**!')
 
         st.title("📖 Digitalisasi Arsip Akta Nikah KUA")
         st.write("---")
