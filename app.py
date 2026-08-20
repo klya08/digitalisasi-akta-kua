@@ -176,4 +176,5 @@ try:
                 st.error(f"Terjadi kesalahan: {e}")
 
 except Exception as e:
-    st.error("")
+    st.error(f"Error aslinya adalah: {e}")
+    st.exception(e)
