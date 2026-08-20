@@ -174,7 +174,3 @@ try:
                     
             except Exception as e:
                 st.error(f"Terjadi kesalahan: {e}")
-
-except Exception as e:
-    st.error(f"Error aslinya adalah: {e}")
-    st.exception(e)
