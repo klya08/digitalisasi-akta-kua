@@ -176,4 +176,4 @@ try:
                 st.error(f"Terjadi kesalahan: {e}")
 
 except Exception as e:
-    st.error("Gagal memuat konfigurasi keamanan. Pastikan file secrets.toml sudah terisi dengan benar di dalam folder .streamlit.")
+    st.error("")
