@@ -28,24 +28,24 @@ try:
         preauthorized
     )
 
-    # Menampilkan form login
-    name, authentication_status, username = authenticator.login('main')
+# Menampilkan form login
+    authenticator.login()
 
-    if authentication_status == False:
+    if st.session_state.get("authentication_status") == False:
         st.error('❌ Username atau password salah! Silakan coba lagi.')
-    elif authentication_status == None:
+    elif st.session_state.get("authentication_status") == None:
         st.info('🔒 Silakan masukkan username dan password untuk mengakses Arsip KUA.')
         
     # Jika Login Berhasil, tampilkan aplikasi utama:
-    elif authentication_status == True:
+    elif st.session_state.get("authentication_status") == True:
         
         # ==========================================
         # BAGIAN 2: APLIKASI UTAMA (Hanya tampil jika login)
         # ==========================================
         
         # Menambahkan tombol Logout di sidebar beserta sapaan
-        authenticator.logout('Logout', 'sidebar')
-        st.sidebar.write(f'👤 Selamat datang, **{name}**!')
+        authenticator.logout(location='sidebar')
+        st.sidebar.write(f'👤 Selamat datang, **{st.session_state["name"]}**!')
 
         st.title("📖 Digitalisasi Arsip Akta Nikah KUA")
         st.write("---")
