@@ -171,11 +171,13 @@ try:
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         type="primary"
                     )
+
+
+                    # (Ini penutup untuk error saat memproses Excel)
+                                except Exception as e:
+                                    st.error(f"Terjadi kesalahan: {e}")
                     
-            except Exception as e:
-                st.error(f"Terjadi kesalahan: {e}")
-
-
-            except Exception as e:
-                st.error(f"Error aslinya adalah: {e}")
-                st.exception(e)
+                    # (Ini penutup untuk error keamanan / login yang ada di paling atas)
+                    except Exception as e:
+                        st.error(f"Error aslinya adalah: {e}")
+                        st.exception(e)
